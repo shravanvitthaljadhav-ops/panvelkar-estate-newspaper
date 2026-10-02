@@ -36,50 +36,75 @@ small{color:#64748b}.top{display:flex;justify-content:space-between;align-items:
 <div class="card"><div class="top"><div><b id="who"></b><br><small>Admin access</small></div><button style="width:auto" onclick="logout()">Logout</button></div></div>
 
 <div class="card">
-<h2>1. Gallery Album</h2>
-<input id="title" placeholder="उदा. MJP Water Line Cleaning">
-<input id="date" type="date">
-<select id="visibility"><option value="public">Public – Website वर दिसेल</option><option value="members">Members Only</option></select>
-<button class="secondary" onclick="createAlbum()">Album तयार करा</button>
-<div id="albumMsg" class="msg hide"></div>
-</div>
-
-<div class="card">
-<h2>2. Photos / Videos Upload</h2>
-<select id="album"></select>
+<h2>📸 Photos / Videos Upload</h2>
+<p style="margin:6px 0 12px;color:#475569">फक्त फोटो किंवा व्हिडिओ निवडा आणि <b>Upload करा</b>. Album तयार करण्याची गरज नाही.</p>
 <input id="files" type="file" accept="image/*,video/*" multiple>
 <button onclick="uploadFiles()">Upload करा</button>
 <div id="uploadMsg" class="msg hide"></div>
-<small>Mobile मधून एक किंवा अनेक फोटो/व्हिडिओ निवडता येतील. Website gallery मध्ये ते automatic दिसतील, जर album Published असेल.</small>
+<small>एकावेळी एक किंवा अनेक फोटो/व्हिडिओ निवडता येतील. Upload झाल्यानंतर ते Website Gallery मध्ये automatic दिसतील.</small>
 </div>
 
 <div class="card">
-<h2>3. Albums</h2><div id="albums"></div>
+<h2>🌐 Website Gallery</h2>
+<p style="margin:0;color:#475569">ही सर्व files <b>Website Gallery</b> मध्ये public स्वरूपात publish होतील.</p>
 </div>
 </div></div>
 <script>
 const SUPABASE_URL='https://zawatmovyrjcpgxkqcqq.supabase.co';
 const SUPABASE_ANON_KEY='sb_publishable_x9u_XeQlrOil8VRZ6Kcbjg_48JRq51y';
+const DEFAULT_ALBUM_ID='bfa49e77-fa19-44f6-a753-1aa95c06d0c7';
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 const $=id=>document.getElementById(id);
 function show(id,msg){$(id).textContent=msg;$(id).classList.remove('hide')}
-async function login(){const r=await sb.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});if(r.error)return show('loginMsg',r.error.message);await boot()}
+async function login(){
+  const r=await sb.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});
+  if(r.error)return show('loginMsg',r.error.message);
+  await boot();
+}
 async function logout(){await sb.auth.signOut();location.reload()}
-async function boot(){const {data:{user}}=await sb.auth.getUser();if(!user)return;
-const {data:p,error}=await sb.from('profiles').select('full_name,role,active').eq('id',user.id).single();
-if(error||!p||!p.active||!['admin','super_admin'].includes(p.role)){show('loginMsg','हा account Admin नाही.');await sb.auth.signOut();return}
-$('loginCard').classList.add('hide');$('setupCard').classList.add('hide');$('app').classList.remove('hide');$('who').textContent=p.full_name||user.email;loadAlbums()}
-async function createAlbum(){const {data:{user}}=await sb.auth.getUser();const r=await sb.from('gallery_albums').insert({title:$('title').value.trim(),event_date:$('date').value||null,visibility_scope:$('visibility').value,published:true,created_by:user.id}).select().single();if(r.error)return show('albumMsg',r.error.message);$('title').value='';show('albumMsg','Album तयार झाला.');loadAlbums()}
-async function loadAlbums(){const r=await sb.from('gallery_albums').select('id,title,event_date,published,visibility_scope').order('created_at',{ascending:false});if(r.error)return;
-$('album').innerHTML=r.data.map(a=>'<option value="'+a.id+'">'+esc(a.title)+' – '+a.visibility_scope+'</option>').join('');
-$('albums').innerHTML=r.data.map(a=>'<div class="photo"><div><b>'+esc(a.title)+'</b><br><small>'+esc(a.event_date||'')+' · '+(a.published?'Published':'Draft')+'</small></div><button style="width:auto" onclick="togglePublish(\''+a.id+'\','+(!a.published)+')">'+(a.published?'Unpublish':'Publish')+'</button></div>').join('')}
-async function togglePublish(id,val){const r=await sb.from('gallery_albums').update({published:val}).eq('id',id);if(r.error)alert(r.error.message);loadAlbums()}
-async function uploadFiles(){const albumId=$('album').value, fs=[...$('files').files];if(!albumId||!fs.length)return show('uploadMsg','Album आणि file निवडा.');
-const {data:{user}}=await sb.auth.getUser();let done=0;
-for(const f of fs){const safe=f.name.replace(/[^a-zA-Z0-9._-]/g,'_');const path=albumId+'/'+Date.now()+'_'+Math.random().toString(36).slice(2)+'_'+safe;const bucket='society-gallery-public';
-let u=await sb.storage.from(bucket).upload(path,f,{upsert:false,contentType:f.type});if(u.error){show('uploadMsg','Upload error: '+u.error.message);return}
-let g=await sb.from('gallery_photos').insert({album_id:albumId,storage_path:path,file_name:f.name,caption:null,sort_order:done,created_by:user.id});if(g.error){show('uploadMsg','Photo record error: '+g.error.message);return}done++}
-show('uploadMsg',done+' file(s) upload झाले.');$('files').value=''}
-function esc(s){return String(s||'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]))}
-sb.auth.onAuthStateChange((e,s)=>{if(e==='SIGNED_IN')boot()}); 
+async function boot(){
+  const {data:{user}}=await sb.auth.getUser();
+  if(!user)return;
+  const {data:p,error}=await sb.from('profiles').select('full_name,role,active').eq('id',user.id).single();
+  if(error||!p||!p.active||!['admin','super_admin'].includes(p.role)){
+    show('loginMsg','हा account Admin नाही.');
+    await sb.auth.signOut();
+    return;
+  }
+  $('loginCard').classList.add('hide');
+  $('setupCard').classList.add('hide');
+  $('app').classList.remove('hide');
+  $('who').textContent=p.full_name||user.email;
+}
+async function uploadFiles(){
+  const fs=[...$('files').files];
+  if(!fs.length)return show('uploadMsg','कृपया फोटो किंवा व्हिडिओ निवडा.');
+  const {data:{user}}=await sb.auth.getUser();
+  if(!user)return show('uploadMsg','Session expired. पुन्हा Login करा.');
+  let done=0;
+  for(const f of fs){
+    const safe=f.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+    const path=DEFAULT_ALBUM_ID+'/'+Date.now()+'_'+Math.random().toString(36).slice(2)+'_'+safe;
+    const bucket='society-gallery-public';
+    const u=await sb.storage.from(bucket).upload(path,f,{upsert:false,contentType:f.type});
+    if(u.error){show('uploadMsg','Upload error: '+u.error.message);return}
+    const g=await sb.from('gallery_photos').insert({
+      album_id:DEFAULT_ALBUM_ID,
+      storage_path:path,
+      file_name:f.name,
+      caption:null,
+      sort_order:done,
+      created_by:user.id
+    });
+    if(g.error){
+      await sb.storage.from(bucket).remove([path]);
+      show('uploadMsg','Gallery record error: '+g.error.message);
+      return;
+    }
+    done++;
+  }
+  show('uploadMsg','✅ '+done+' file(s) upload झाले आणि Website Gallery मध्ये publish झाले.');
+  $('files').value='';
+}
+sb.auth.onAuthStateChange((e,s)=>{if(e==='SIGNED_IN')boot()});
 </script></body></html>
