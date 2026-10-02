@@ -98,33 +98,32 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Escape') document.getElementById('lightbox').classList.remove('open');
 });
 
-async function loadGalleryVideos(){
+async function loadDynamicGallery(){
   try{
-    const url=SUPABASE_URL+'/rest/v1/gallery_photos?select=storage_path,file_name,caption,sort_order,created_at&order=sort_order.asc,created_at.asc';
+    const url=SUPABASE_URL+'/rest/v1/gallery_photos?select=storage_path,file_name,caption,sort_order,created_at&order=created_at.desc';
     const res=await fetch(url,{headers:{apikey:SUPABASE_KEY,Authorization:'Bearer '+SUPABASE_KEY}});
     if(!res.ok) return;
     const rows=await res.json();
-    const videos=(Array.isArray(rows)?rows:[]).filter(x=>/\.(mp4|webm|mov|m4v)$/i.test(x.file_name||''));
-    if(!videos.length) return;
-    const section=document.getElementById('videoSection');
-    const box=document.getElementById('videoGallery');
-    videos.forEach(v=>{
-      const src=SUPABASE_URL+'/storage/v1/object/public/'+GALLERY_BUCKET+'/'+String(v.storage_path||'').split('/').map(encodeURIComponent).join('/');
-      const card=document.createElement('div');
-      card.className='gallery-card';
-      const video=document.createElement('video');
-      video.src=src;
-      video.controls=true;
-      video.muted=true;
-      video.playsInline=true;
-      video.preload='metadata';
-      card.appendChild(video);
-      box.appendChild(card);
+    if(!Array.isArray(rows)||!rows.length) return;
+    const photoBox=document.querySelector('.gallery-section .gallery');
+    const videoSection=document.getElementById('videoSection');
+    const videoBox=document.getElementById('videoGallery');
+    rows.forEach(x=>{
+      const src=SUPABASE_URL+'/storage/v1/object/public/'+GALLERY_BUCKET+'/'+String(x.storage_path||'').split('/').map(encodeURIComponent).join('/');
+      const name=x.file_name||'';
+      if(/\.(mp4|webm|mov|m4v)$/i.test(name)){
+        const card=document.createElement('div'); card.className='gallery-card';
+        const video=document.createElement('video'); video.src=src; video.controls=true; video.muted=true; video.playsInline=true; video.preload='metadata';
+        card.appendChild(video); videoBox.appendChild(card); videoSection.style.display='block';
+      }else{
+        const card=document.createElement('a'); card.className='gallery-card'; card.href=src; card.onclick=(e)=>openLightbox(src,e);
+        const img=document.createElement('img'); img.src=src; img.alt='Society Gallery Photo'; img.loading='lazy';
+        card.appendChild(img); photoBox.appendChild(card);
+      }
     });
-    section.style.display='block';
   }catch(e){}
 }
-loadGalleryVideos();
+loadDynamicGallery();
 </script>
 </body>
 </html>
