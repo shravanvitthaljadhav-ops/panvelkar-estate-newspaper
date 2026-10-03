@@ -53,6 +53,10 @@
 <div class="listbox"><div class="listitem"><strong>टँकरसाठी स्वतंत्र पाईपलाईन</strong><br>पाणीपुरवठा व्यवस्थेसाठी स्वतंत्र व्यवस्था.</div><div class="listitem"><strong>गटारावरील झाकणे</strong><br>सुरक्षितता व परिसर व्यवस्थापनासाठी.</div><div class="listitem"><strong>Cement Concrete काम</strong><br>आवश्यक ठिकाणी पायाभूत सुधारणा.</div><div class="listitem"><strong>DG आणि Fire Shed साठी पत्रे</strong><br>सुविधांची सुरक्षितता व संरक्षण.</div><div class="listitem"><strong>Garden मधील Mat बदलणे</strong><br>उद्यान परिसरातील सुधारणा.</div><div class="listitem"><strong>कचरा डब्यांसाठी स्वतंत्र Shed</strong><br>कचरा व्यवस्थापन अधिक व्यवस्थित करण्यासाठी.</div><div class="listitem"><strong>Solar System</strong><br>सौरऊर्जा व्यवस्थेचे नियोजन.</div><div class="listitem"><strong>Society Office नूतनीकरण</strong><br>कार्यालयीन सुविधा अधिक सक्षम करण्यासाठी.</div></div>
 <div class="note" style="margin-top:8px;font-size:9.5px;line-height:1.7">या कामांसाठी आवश्यक Quotations, Estimates आणि पुढील कार्यवाही टप्प्याटप्प्याने करण्यात येत आहे.</div>
 <div class="section gallery-section"><div class="section-title">📸 आपल्या सोसायटीची कामांची झलक</div><div class="box"><p>काम झाले, काम सुरू आहे आणि पुढील कामांची तयारी — काही क्षणचित्रे...</p></div><div class="gallery" id="mainGallery">
+<a class="gallery-card" href="https://zawatmovyrjcpgxkqcqq.supabase.co/storage/v1/object/public/society-gallery-public/bfa49e77-fa19-44f6-a753-1aa95c06d0c7/1790968618795_nfpsxcgxd0s_369961.jpg" onclick="openLightbox(this.href,event)"><img src="https://zawatmovyrjcpgxkqcqq.supabase.co/storage/v1/object/public/society-gallery-public/bfa49e77-fa19-44f6-a753-1aa95c06d0c7/1790968618795_nfpsxcgxd0s_369961.jpg" alt="MJP पिण्याच्या पाण्याची लाईन"></a>
+<a class="gallery-card" href="https://zawatmovyrjcpgxkqcqq.supabase.co/storage/v1/object/public/society-gallery-public/bfa49e77-fa19-44f6-a753-1aa95c06d0c7/1790968626782_qicgg99jeho_369960.jpg" onclick="openLightbox(this.href,event)"><img src="https://zawatmovyrjcpgxkqcqq.supabase.co/storage/v1/object/public/society-gallery-public/bfa49e77-fa19-44f6-a753-1aa95c06d0c7/1790968626782_qicgg99jeho_369960.jpg" alt="MJP लाईन साफसफाई"></a>
+<a class="gallery-card" href="https://zawatmovyrjcpgxkqcqq.supabase.co/storage/v1/object/public/society-gallery-public/bfa49e77-fa19-44f6-a753-1aa95c06d0c7/1790968650740_zvql4e2e3x_252182.jpg" onclick="openLightbox(this.href,event)"><img src="https://zawatmovyrjcpgxkqcqq.supabase.co/storage/v1/object/public/society-gallery-public/bfa49e77-fa19-44f6-a753-1aa95c06d0c7/1790968650740_zvql4e2e3x_252182.jpg" alt="साप सुरक्षितपणे पकडण्याची कार्यवाही"></a>
+
 <a class="gallery-card" href="images/01_kachra_shed.jpg" onclick="openLightbox(this.href,event)"><img src="images/01_kachra_shed.jpg" alt="घनकचरा Shed"></a>
 <a class="gallery-card" href="images/02_shed_team.jpg" onclick="openLightbox(this.href,event)"><img src="images/02_shed_team.jpg" alt="Shed कामाची पाहणी"></a>
 <a class="gallery-card" href="images/07_ac_pipes.jpg" onclick="openLightbox(this.href,event)"><img src="images/07_ac_pipes.jpg" alt="AC Drainage Pipe Survey"></a>
@@ -112,6 +116,11 @@ async function loadDynamicGallery(){
     if(error){console.error('Gallery load error',error);return;}
     if(!Array.isArray(rows)) return;
     const displayed=new Set();
+    photoBox.querySelectorAll('img').forEach(img=>{
+      const src=img.getAttribute('src')||'';
+      const m=src.match(/_([^/_]+\\.(?:jpg|jpeg|png|webp))$/i);
+      if(m) displayed.add(m[1].toLowerCase());
+    });
     rows.forEach(x=>{
       const key=(x.file_name||'').toLowerCase();
       if(displayed.has(key)) return;
