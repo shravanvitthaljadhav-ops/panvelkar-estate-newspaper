@@ -111,7 +111,11 @@ async function loadDynamicGallery(){
       .order('created_at',{ascending:false});
     if(error){console.error('Gallery load error',error);return;}
     if(!Array.isArray(rows)) return;
+    const displayed=new Set();
     rows.forEach(x=>{
+      const key=(x.file_name||'').toLowerCase();
+      if(displayed.has(key)) return;
+      displayed.add(key);
       const clean=String(x.storage_path||'').split('/').map(encodeURIComponent).join('/');
       const src=SUPABASE_URL+'/storage/v1/object/public/'+GALLERY_BUCKET+'/'+clean;
       const name=x.file_name||'';
